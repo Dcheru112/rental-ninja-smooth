@@ -7,6 +7,9 @@ import Layout from "./components/Layout";
 import Index from "./pages/Index";
 import Features from "./pages/Features";
 import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+import Pricing from "./pages/Pricing";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +24,9 @@ const App = () => (
             <Route index element={<Index />} />
             <Route path="features" element={<Features />} />
             <Route path="signup" element={<Signup />} />
+            <Route path="login" element={<Login />} />
+            <Route path="pricing" element={<Pricing />} />
+            <Route path="dashboard" element={<Dashboard />} />
           </Route>
         </Routes>
       </BrowserRouter>
