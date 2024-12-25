@@ -38,9 +38,10 @@ const Login = () => {
                   brand: 'rgb(var(--color-primary))',
                   brandAccent: 'rgb(var(--color-primary))',
                 },
-                borderRadii: {
-                  button: '0.5rem',
-                  input: '0.5rem'
+                radii: {
+                  borderRadiusButton: '0.5rem',
+                  buttonBorderRadius: '0.5rem',
+                  inputBorderRadius: '0.5rem'
                 }
               }
             },
