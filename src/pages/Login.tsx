@@ -3,6 +3,7 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -36,8 +37,16 @@ const Login = () => {
                 colors: {
                   brand: 'rgb(var(--color-primary))',
                   brandAccent: 'rgb(var(--color-primary))',
+                },
+                borderRadii: {
+                  button: '0.5rem',
+                  input: '0.5rem'
                 }
               }
+            },
+            className: {
+              button: 'bg-primary hover:bg-primary/90 text-white rounded-md px-4 py-2 w-full',
+              input: 'rounded-md border px-3 py-2 w-full',
             }
           }}
           providers={[]}
