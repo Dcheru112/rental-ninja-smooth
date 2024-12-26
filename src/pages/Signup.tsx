@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -86,7 +85,8 @@ const Signup = () => {
                 }
               }
             }}
-            options={{
+            redirectTo={`${window.location.origin}/dashboard`}
+            authOptions={{
               metaData: {
                 role: role
               }
