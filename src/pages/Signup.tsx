@@ -83,11 +83,8 @@ const Signup = () => {
               }
             }}
             redirectTo={`${window.location.origin}/dashboard`}
-            authOptions={{
-              metaData: {
-                role: role
-              }
-            }}
+            providers={[]}
+            view="sign_up"
           />
         </div>
       </div>
