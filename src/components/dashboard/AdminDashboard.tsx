@@ -24,7 +24,7 @@ const AdminDashboard = () => {
         .select(`
           id,
           full_name,
-          properties(count)
+          properties:properties(count)
         `)
         .eq("role", "owner");
 
@@ -33,7 +33,7 @@ const AdminDashboard = () => {
       const ownersWithCount = data.map(owner => ({
         id: owner.id,
         full_name: owner.full_name || "Unknown",
-        properties_count: owner.properties?.[0]?.count ?? 0
+        properties_count: (owner.properties as any)?.[0]?.count ?? 0
       }));
 
       setOwners(ownersWithCount);
