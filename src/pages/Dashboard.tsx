@@ -31,7 +31,21 @@ const Dashboard = () => {
         .single();
 
       if (error) throw error;
+      
       setUserRole(profile?.role || null);
+
+      // If tenant and no unit assigned, show property selection
+      if (profile?.role === "tenant") {
+        const { data: tenantUnit } = await supabase
+          .from("tenant_units")
+          .select("*")
+          .eq("tenant_id", user.id)
+          .maybeSingle();
+
+        if (!tenantUnit) {
+          console.log("No unit assigned, showing property selection");
+        }
+      }
     } catch (error) {
       console.error("Error fetching user role:", error);
       toast({
