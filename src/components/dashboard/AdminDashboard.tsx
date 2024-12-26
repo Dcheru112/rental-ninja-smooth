@@ -19,24 +19,40 @@ const AdminDashboard = () => {
 
   const fetchPropertyOwners = async () => {
     try {
-      const { data, error } = await supabase
+      // First, get all profiles with role 'owner'
+      const { data: ownerProfiles, error: profilesError } = await supabase
         .from("profiles")
-        .select(`
-          id,
-          full_name,
-          properties:properties(count)
-        `)
+        .select("id, full_name")
         .eq("role", "owner");
 
-      if (error) throw error;
+      if (profilesError) throw profilesError;
 
-      const ownersWithCount = data.map(owner => ({
-        id: owner.id,
-        full_name: owner.full_name || "Unknown",
-        properties_count: (owner.properties as any)?.[0]?.count ?? 0
-      }));
+      // Then, for each owner, count their properties
+      const ownersWithProperties = await Promise.all(
+        (ownerProfiles || []).map(async (owner) => {
+          const { count, error: countError } = await supabase
+            .from("properties")
+            .select("*", { count: "exact", head: true })
+            .eq("owner_id", owner.id);
 
-      setOwners(ownersWithCount);
+          if (countError) {
+            console.error("Error counting properties:", countError);
+            return {
+              id: owner.id,
+              full_name: owner.full_name || "Unknown",
+              properties_count: 0,
+            };
+          }
+
+          return {
+            id: owner.id,
+            full_name: owner.full_name || "Unknown",
+            properties_count: count || 0,
+          };
+        })
+      );
+
+      setOwners(ownersWithProperties);
     } catch (error) {
       console.error("Error fetching property owners:", error);
       toast({
