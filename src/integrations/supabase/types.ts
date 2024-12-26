@@ -9,6 +9,88 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      maintenance_requests: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          property_id: string
+          status: string
+          tenant_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          property_id: string
+          status?: string
+          tenant_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          property_id?: string
+          status?: string
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_requests_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          payment_date: string
+          property_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          payment_date?: string
+          property_id: string
+          status?: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          payment_date?: string
+          property_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -65,6 +147,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      tenant_units: {
+        Row: {
+          created_at: string
+          id: string
+          property_id: string
+          tenant_id: string
+          unit_number: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          property_id: string
+          tenant_id: string
+          unit_number: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          property_id?: string
+          tenant_id?: string
+          unit_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_units_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

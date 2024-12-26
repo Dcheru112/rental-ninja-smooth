@@ -70,10 +70,22 @@ const Signup = () => {
               className: {
                 button: 'bg-primary hover:bg-primary/90 text-white rounded-md px-4 py-2 w-full',
                 input: 'rounded-md border px-3 py-2 w-full',
+                label: 'block text-sm font-medium text-gray-700 mb-1',
+                container: 'space-y-4',
               }
             }}
             providers={[]}
             view="sign_up"
+            showLinks={true}
+            localization={{
+              variables: {
+                sign_up: {
+                  button_label: "Create Account",
+                  email_label: "Email",
+                  password_label: "Password",
+                }
+              }
+            }}
             options={{
               metaData: {
                 role: role
