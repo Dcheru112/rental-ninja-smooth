@@ -73,9 +73,6 @@ const Signup = () => {
                 container: 'space-y-4',
               }
             }}
-            providers={[]}
-            view="sign_up"
-            showLinks={true}
             localization={{
               variables: {
                 sign_up: {

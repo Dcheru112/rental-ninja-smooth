@@ -51,10 +51,6 @@ const Login = () => {
               container: 'space-y-4',
             }
           }}
-          providers={[]}
-          view="sign_in"
-          showLinks={true}
-          redirectTo={`${window.location.origin}/dashboard`}
           localization={{
             variables: {
               sign_in: {
@@ -64,6 +60,7 @@ const Login = () => {
               }
             }
           }}
+          redirectTo={`${window.location.origin}/dashboard`}
         />
       </div>
     </div>
