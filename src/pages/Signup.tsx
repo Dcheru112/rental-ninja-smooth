@@ -48,20 +48,6 @@ const Signup = () => {
             redirectTo={`${window.location.origin}/dashboard`}
             providers={[]}
             view="sign_up"
-            onSubmit={async (formData) => {
-              const { email, password } = formData;
-              const { data, error } = await supabase.auth.signUp({
-                email,
-                password,
-                options: {
-                  data: {
-                    role: role,
-                  },
-                },
-              });
-              if (error) throw error;
-              return data;
-            }}
           />
         </div>
       </div>

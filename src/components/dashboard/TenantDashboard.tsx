@@ -25,7 +25,7 @@ const TenantDashboard = () => {
         .from("tenant_units")
         .select("*")
         .eq("tenant_id", user.id)
-        .single();
+        .maybeSingle();
 
       setHasUnit(!!data);
     } catch (error) {
