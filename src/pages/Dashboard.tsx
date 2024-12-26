@@ -28,14 +28,25 @@ const Dashboard = () => {
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       
-      setUserRole(profile?.role || null);
+      if (!profile) {
+        toast({
+          title: "Profile not found",
+          description: "Please try logging in again or contact support.",
+          variant: "destructive",
+        });
+        await supabase.auth.signOut();
+        navigate("/login");
+        return;
+      }
+
+      setUserRole(profile.role);
 
       // If tenant and no unit assigned, show property selection
-      if (profile?.role === "tenant") {
+      if (profile.role === "tenant") {
         const { data: tenantUnit } = await supabase
           .from("tenant_units")
           .select("*")
