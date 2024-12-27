@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { Wrench, CreditCard, Home } from "lucide-react";
 import PropertySelection from "./PropertySelection";
 import MaintenanceRequestForm from "./MaintenanceRequestForm";
 import PaymentForm from "./PaymentForm";
+import TenantHeader from "./tenant/TenantHeader";
+import TenantActions from "./tenant/TenantActions";
+import MaintenanceList from "./tenant/MaintenanceList";
+import PaymentList from "./tenant/PaymentList";
 import type { Property } from "@/types/property";
 
 interface TenantUnit {
@@ -66,7 +68,6 @@ const TenantDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch maintenance requests
       const { data: requests } = await supabase
         .from("maintenance_requests")
         .select("*")
@@ -76,7 +77,6 @@ const TenantDashboard = () => {
 
       setMaintenanceRequests(requests || []);
 
-      // Fetch payments
       const { data: paymentData } = await supabase
         .from("payments")
         .select("*")
@@ -110,95 +110,21 @@ const TenantDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{tenantUnit.property.name}</h1>
-        <p className="text-gray-600">Unit {tenantUnit.unit_number}</p>
-        <p className="text-gray-600">{tenantUnit.property.address}</p>
-      </div>
+      <TenantHeader
+        propertyName={tenantUnit.property.name}
+        unitNumber={tenantUnit.unit_number}
+        address={tenantUnit.property.address}
+      />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-          <div className="flex items-center space-x-2">
-            <Home className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-semibold">Your Unit</h2>
-          </div>
-          <p className="text-gray-600">Unit {tenantUnit.unit_number}</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-          <div className="flex items-center space-x-2">
-            <Wrench className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-semibold">Maintenance</h2>
-          </div>
-          <p className="text-gray-600">Report maintenance issues</p>
-          <Button onClick={() => setShowMaintenanceForm(true)}>
-            Submit Request
-          </Button>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-          <div className="flex items-center space-x-2">
-            <CreditCard className="h-6 w-6 text-primary" />
-            <h2 className="text-xl font-semibold">Payments</h2>
-          </div>
-          <p className="text-gray-600">Make rent payments</p>
-          <Button onClick={() => setShowPaymentForm(true)}>
-            Make Payment
-          </Button>
-        </div>
-      </div>
+      <TenantActions
+        unitNumber={tenantUnit.unit_number}
+        onMaintenanceClick={() => setShowMaintenanceForm(true)}
+        onPaymentClick={() => setShowPaymentForm(true)}
+      />
 
       <div className="space-y-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Recent Maintenance Requests</h2>
-          <div className="space-y-4">
-            {maintenanceRequests.slice(0, 5).map((request) => (
-              <div key={request.id} className="border-b pb-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium">{request.title}</h3>
-                    <p className="text-gray-600">{request.description}</p>
-                  </div>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    request.status === 'pending' 
-                      ? 'bg-yellow-100 text-yellow-800' 
-                      : 'bg-green-100 text-green-800'
-                  }`}>
-                    {request.status}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  {new Date(request.created_at).toLocaleDateString()}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Recent Payments</h2>
-          <div className="space-y-4">
-            {payments.slice(0, 5).map((payment) => (
-              <div key={payment.id} className="border-b pb-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-medium">${payment.amount}</p>
-                    <p className="text-sm text-gray-500">
-                      {new Date(payment.payment_date).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    payment.status === 'pending' 
-                      ? 'bg-yellow-100 text-yellow-800' 
-                      : 'bg-green-100 text-green-800'
-                  }`}>
-                    {payment.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <MaintenanceList requests={maintenanceRequests} />
+        <PaymentList payments={payments} />
       </div>
 
       {showMaintenanceForm && (
