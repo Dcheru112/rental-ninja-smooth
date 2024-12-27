@@ -1,21 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 
 const Signup = () => {
   const [role, setRole] = useState("tenant");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSignUp = async (event: any) => {
+  const handleSignUp = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const email = event.target.email.value;
-    const password = event.target.password.value;
+    setIsLoading(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const fullName = formData.get('fullName') as string;
     
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -23,6 +27,7 @@ const Signup = () => {
         password,
         options: {
           data: {
+            full_name: fullName,
             role: role,
           },
         },
@@ -43,6 +48,8 @@ const Signup = () => {
         description: error.message,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,32 +82,47 @@ const Signup = () => {
 
           <form onSubmit={handleSignUp} className="space-y-6">
             <div>
+              <Label htmlFor="fullName">Full Name</Label>
+              <Input
+                id="fullName"
+                name="fullName"
+                type="text"
+                required
+                className="mt-1"
+                placeholder="John Doe"
+              />
+            </div>
+
+            <div>
               <Label htmlFor="email">Email address</Label>
-              <input
+              <Input
                 id="email"
                 name="email"
                 type="email"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="mt-1"
+                placeholder="you@example.com"
               />
             </div>
 
             <div>
               <Label htmlFor="password">Password</Label>
-              <input
+              <Input
                 id="password"
                 name="password"
                 type="password"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="mt-1"
+                placeholder="••••••••"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isLoading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign up
+              {isLoading ? "Creating account..." : "Sign up"}
             </button>
           </form>
         </div>
