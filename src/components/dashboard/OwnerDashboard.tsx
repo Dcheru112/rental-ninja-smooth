@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import PropertyList from "./PropertyList";
+import AddPropertyForm from "./AddPropertyForm";
 import type { Property } from "@/types/property";
 
 const OwnerDashboard = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddProperty, setShowAddProperty] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -38,13 +42,58 @@ const OwnerDashboard = () => {
     }
   };
 
+  const handleAddProperty = async (property: { name: string; address: string; units: number }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user");
+
+      const { error } = await supabase
+        .from("properties")
+        .insert({
+          ...property,
+          owner_id: user.id,
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Property added successfully!",
+      });
+      
+      setShowAddProperty(false);
+      fetchProperties();
+    } catch (error) {
+      console.error("Error adding property:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add property",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <div>Loading properties...</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Your Properties</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Your Properties</h1>
+        <Button onClick={() => setShowAddProperty(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Property
+        </Button>
+      </div>
+
+      {showAddProperty && (
+        <AddPropertyForm
+          onSubmit={handleAddProperty}
+          onCancel={() => setShowAddProperty(false)}
+        />
+      )}
+
       <PropertyList properties={properties} />
     </div>
   );
