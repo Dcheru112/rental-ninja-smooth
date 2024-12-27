@@ -52,7 +52,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
         .select(`
           tenant_id,
           unit_number,
-          profiles!tenant_units_tenant_id_fkey (
+          profiles (
             full_name
           )
         `)
