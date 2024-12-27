@@ -18,6 +18,7 @@ interface TenantUnit {
 const TenantDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [tenantUnit, setTenantUnit] = useState<TenantUnit | null>(null);
+  const [properties, setProperties] = useState<Property[]>([]);
   const [showMaintenanceForm, setShowMaintenanceForm] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [maintenanceRequests, setMaintenanceRequests] = useState<any[]>([]);
@@ -26,7 +27,26 @@ const TenantDashboard = () => {
 
   useEffect(() => {
     checkTenantUnit();
+    fetchProperties();
   }, []);
+
+  const fetchProperties = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("properties")
+        .select("*");
+
+      if (error) throw error;
+      setProperties(data || []);
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load properties",
+        variant: "destructive",
+      });
+    }
+  };
 
   const checkTenantUnit = async () => {
     try {
@@ -97,6 +117,7 @@ const TenantDashboard = () => {
   if (!tenantUnit) {
     return (
       <PropertySelection
+        properties={properties}
         onComplete={() => {
           checkTenantUnit();
           toast({
