@@ -3,9 +3,10 @@ import { Property } from "@/types/property";
 
 interface PropertyListProps {
   properties: Property[];
+  onPropertyClick?: (property: Property) => void;
 }
 
-const PropertyList = ({ properties }: PropertyListProps) => {
+const PropertyList = ({ properties, onPropertyClick }: PropertyListProps) => {
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       <Table>
@@ -19,7 +20,11 @@ const PropertyList = ({ properties }: PropertyListProps) => {
         </TableHeader>
         <TableBody>
           {properties.map((property) => (
-            <TableRow key={property.id}>
+            <TableRow 
+              key={property.id}
+              className={onPropertyClick ? "cursor-pointer hover:bg-gray-50" : ""}
+              onClick={() => onPropertyClick?.(property)}
+            >
               <TableCell className="font-medium">{property.name}</TableCell>
               <TableCell className="hidden md:table-cell">{property.address}</TableCell>
               <TableCell className="hidden md:table-cell">{property.units}</TableCell>
