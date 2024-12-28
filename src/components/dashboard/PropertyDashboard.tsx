@@ -18,6 +18,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [payments, setPayments] = useState([]);
   const [tenants, setTenants] = useState([]);
+  const [availableUnits, setAvailableUnits] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -26,6 +27,8 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
 
   const fetchPropertyData = async () => {
     try {
+      console.log("Fetching property data for property:", property.id);
+
       // Fetch maintenance requests
       const { data: requests, error: requestsError } = await supabase
         .from("maintenance_requests")
@@ -34,6 +37,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
         .order("created_at", { ascending: false });
 
       if (requestsError) throw requestsError;
+      console.log("Maintenance requests:", requests);
       setMaintenanceRequests(requests || []);
 
       // Fetch payments
@@ -44,9 +48,10 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
         .order("payment_date", { ascending: false });
 
       if (paymentsError) throw paymentsError;
+      console.log("Payments:", paymentData);
       setPayments(paymentData || []);
 
-      // Fetch tenants with their profiles using a join
+      // Fetch tenants with their profiles
       const { data: tenantData, error: tenantsError } = await supabase
         .from("tenant_units")
         .select(`
@@ -59,6 +64,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
         .eq("property_id", property.id);
 
       if (tenantsError) throw tenantsError;
+      console.log("Tenant data:", tenantData);
       
       const formattedTenants = tenantData?.map(t => ({
         id: t.tenant_id,
@@ -67,6 +73,15 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
       })) || [];
       
       setTenants(formattedTenants);
+
+      // Get available units
+      const { data: availableUnitsData, error: availableUnitsError } = await supabase
+        .rpc('get_available_units', { property_id: property.id });
+
+      if (availableUnitsError) throw availableUnitsError;
+      console.log("Available units:", availableUnitsData);
+      setAvailableUnits(availableUnitsData || 0);
+
     } catch (error) {
       console.error("Error fetching property data:", error);
       toast({
@@ -96,6 +111,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
             property={property}
             tenantCount={tenants.length}
             pendingMaintenanceCount={pendingMaintenanceCount}
+            availableUnits={availableUnits}
           />
         </TabsContent>
 

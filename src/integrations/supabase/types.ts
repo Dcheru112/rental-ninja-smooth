@@ -188,7 +188,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_available_units: {
+        Args: {
+          property_id: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

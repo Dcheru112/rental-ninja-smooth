@@ -4,11 +4,17 @@ interface PropertyOverviewProps {
   property: Property;
   tenantCount: number;
   pendingMaintenanceCount: number;
+  availableUnits: number;
 }
 
-const PropertyOverview = ({ property, tenantCount, pendingMaintenanceCount }: PropertyOverviewProps) => {
+const PropertyOverview = ({ 
+  property, 
+  tenantCount, 
+  pendingMaintenanceCount,
+  availableUnits 
+}: PropertyOverviewProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <h3 className="font-semibold mb-2">Total Units</h3>
         <p className="text-2xl">{property.units}</p>
@@ -16,6 +22,10 @@ const PropertyOverview = ({ property, tenantCount, pendingMaintenanceCount }: Pr
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <h3 className="font-semibold mb-2">Active Tenants</h3>
         <p className="text-2xl">{tenantCount}</p>
+      </div>
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        <h3 className="font-semibold mb-2">Available Units</h3>
+        <p className="text-2xl">{availableUnits}</p>
       </div>
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <h3 className="font-semibold mb-2">Pending Maintenance</h3>
