@@ -3,11 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const getUser = async () => {
@@ -18,6 +20,7 @@ const Navbar = () => {
     getUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session?.user?.id);
       setUser(session?.user ?? null);
     });
 
@@ -25,8 +28,34 @@ const Navbar = () => {
   }, []);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Signout error:", error);
+        // If we get a 403 user_not_found error, clear the session manually
+        if (error.status === 403 && error.message.includes("user_not_found")) {
+          await supabase.auth.clearSession();
+          setUser(null);
+        } else {
+          throw error;
+        }
+      }
+      navigate("/");
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account.",
+      });
+    } catch (error: any) {
+      console.error("Failed to sign out:", error);
+      // Force clear the session and redirect anyway
+      await supabase.auth.clearSession();
+      setUser(null);
+      navigate("/");
+      toast({
+        title: "Signed out",
+        description: "You have been logged out of your account.",
+      });
+    }
   };
 
   const navItems = [
