@@ -22,6 +22,7 @@ const OwnerDashboard = () => {
   }, []);
 
   const fetchProperties = async () => {
+    setLoading(true); // Start with loading to ensure UI reflects data fetching
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -35,8 +36,12 @@ const OwnerDashboard = () => {
         .eq("owner_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setProperties(data || []);
+      if (error) {
+        throw new Error(`Error fetching properties: ${error.message}`);
+      }
+      
+      // Ensure data is an array before setting state
+      setProperties(data as Property[] || []);
     } catch (error) {
       console.error("Error fetching properties:", error);
       toast({
@@ -63,7 +68,9 @@ const OwnerDashboard = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(`Error adding property: ${error.message}`);
+      }
 
       toast({
         title: "Success",
@@ -71,7 +78,8 @@ const OwnerDashboard = () => {
       });
       
       setShowAddProperty(false);
-      setProperties([data, ...properties]);
+      // Use the spread operator to add the new property at the beginning of the list
+      setProperties([data as Property, ...properties]);
     } catch (error) {
       console.error("Error adding property:", error);
       toast({
