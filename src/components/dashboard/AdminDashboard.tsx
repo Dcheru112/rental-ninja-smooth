@@ -1,30 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-interface PropertyOwner {
-  id: string;
-  full_name: string;
-  properties_count: number;
-}
-
-interface Statistics {
-  totalProperties: number;
-  totalTenants: number;
-  totalMaintenanceRequests: number;
-  totalPayments: number;
-  pendingMaintenanceRequests: number;
-  occupancyRate: number;
-}
+import AdminDashboardContent from "./admin/AdminDashboardContent";
+import type { Statistics, PropertyOwner } from "./admin/types";
 
 const AdminDashboard = () => {
   const [owners, setOwners] = useState<PropertyOwner[]>([]);
@@ -128,108 +106,14 @@ const AdminDashboard = () => {
     );
   }
 
-  const chartData = owners.map(owner => ({
-    name: owner.full_name,
-    properties: owner.properties_count,
-  }));
-
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Properties</CardTitle>
-            <CardDescription>Total properties in the system</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{statistics.totalProperties}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Tenants</CardTitle>
-            <CardDescription>Total active tenants</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{statistics.totalTenants}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Occupancy Rate</CardTitle>
-            <CardDescription>Overall occupancy percentage</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {statistics.occupancyRate.toFixed(1)}%
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="owners">Property Owners</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview">
-          <Card>
-            <CardHeader>
-              <CardTitle>Properties by Owner</CardTitle>
-              <CardDescription>Distribution of properties among owners</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="properties" fill="#3b82f6" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="owners">
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Owner Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Properties Count
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {owners.map((owner) => (
-                  <tr key={owner.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">
-                        {owner.full_name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {owner.properties_count}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </TabsContent>
-      </Tabs>
+      <AdminDashboardContent
+        statistics={statistics}
+        owners={owners}
+        onRefresh={fetchDashboardData}
+      />
     </div>
   );
 };
