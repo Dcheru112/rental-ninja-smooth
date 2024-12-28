@@ -51,19 +51,22 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
       console.log("Payments:", paymentData);
       setPayments(paymentData || []);
 
-      // Fetch tenants with their profiles
+      // Fetch tenants with their profiles using a proper join
       const { data: tenantData, error: tenantsError } = await supabase
         .from("tenant_units")
         .select(`
           tenant_id,
           unit_number,
-          profiles!inner (
+          profiles (
             full_name
           )
         `)
         .eq("property_id", property.id);
 
-      if (tenantsError) throw tenantsError;
+      if (tenantsError) {
+        console.error("Error fetching tenants:", tenantsError);
+        throw tenantsError;
+      }
       console.log("Tenant data:", tenantData);
       
       const formattedTenants = tenantData?.map(t => ({
