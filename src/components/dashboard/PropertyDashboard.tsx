@@ -57,7 +57,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
         .select(`
           tenant_id,
           unit_number,
-          tenant:profiles!tenant_units_tenant_id_fkey (
+          profiles!inner (
             full_name
           )
         `)
@@ -71,7 +71,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
       
       const formattedTenants = tenantData?.map(t => ({
         id: t.tenant_id,
-        full_name: t.tenant?.full_name || 'Unknown',
+        full_name: t.profiles.full_name || 'Unknown',
         unit_number: t.unit_number
       })) || [];
       
