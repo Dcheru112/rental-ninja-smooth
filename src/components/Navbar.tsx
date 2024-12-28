@@ -29,12 +29,18 @@ const Navbar = () => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      // Try to sign out with scope: 'global' to clear all sessions
+      const { error } = await supabase.auth.signOut({ 
+        scope: 'global' 
+      });
+      
       if (error) {
         console.error("Signout error:", error);
-        // If we get a 403 user_not_found error, clear the session manually
+        // If we get a 403 user_not_found error, force sign out
         if (error.status === 403 && error.message.includes("user_not_found")) {
-          await supabase.auth.clearSession();
+          await supabase.auth.signOut({ 
+            scope: 'global'
+          });
           setUser(null);
         } else {
           throw error;
@@ -47,8 +53,10 @@ const Navbar = () => {
       });
     } catch (error: any) {
       console.error("Failed to sign out:", error);
-      // Force clear the session and redirect anyway
-      await supabase.auth.clearSession();
+      // Force sign out anyway
+      await supabase.auth.signOut({ 
+        scope: 'global'
+      });
       setUser(null);
       navigate("/");
       toast({

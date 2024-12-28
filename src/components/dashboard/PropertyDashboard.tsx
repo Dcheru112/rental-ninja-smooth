@@ -57,7 +57,9 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
         .select(`
           tenant_id,
           unit_number,
-          profiles!inner(full_name)
+          profiles (
+            full_name
+          )
         `)
         .eq("property_id", property.id);
 
