@@ -57,7 +57,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
       console.log("Payments:", paymentData);
       setPayments(paymentData || []);
 
-      // Fetch tenants with their profiles using the updated join
+      // Fetch tenants with their profiles using the inner join
       const { data: tenantData, error: tenantsError } = await supabase
         .from("tenant_units")
         .select(`
@@ -83,13 +83,22 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
       
       setTenants(formattedTenants);
 
-      // Get available units
+      // Get available units using the database function
       const { data: availableUnitsData, error: availableUnitsError } = await supabase
         .rpc('get_available_units', { property_id: property.id });
 
-      if (availableUnitsError) throw availableUnitsError;
-      console.log("Available units:", availableUnitsData);
-      setAvailableUnits(availableUnitsData || 0);
+      if (availableUnitsError) {
+        console.error("Error fetching available units:", availableUnitsError);
+        throw availableUnitsError;
+      }
+      
+      console.log("Available units calculation:", {
+        totalUnits: property.units,
+        occupiedUnits: formattedTenants.length,
+        availableUnits: availableUnitsData
+      });
+      
+      setAvailableUnits(property.units - formattedTenants.length);
 
     } catch (error) {
       console.error("Error fetching property data:", error);
