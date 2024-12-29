@@ -14,6 +14,14 @@ interface PropertyDashboardProps {
   onBack: () => void;
 }
 
+interface TenantWithProfile {
+  tenant_id: string;
+  unit_number: string;
+  profiles: {
+    full_name: string;
+  };
+}
+
 const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
   const [maintenanceRequests, setMaintenanceRequests] = useState([]);
   const [payments, setPayments] = useState([]);
@@ -57,7 +65,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
         .select(`
           tenant_id,
           unit_number,
-          profiles!inner (
+          profiles (
             full_name
           )
         `)
@@ -69,7 +77,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
       }
       console.log("Tenant data:", tenantData);
       
-      const formattedTenants = tenantData?.map(t => ({
+      const formattedTenants = (tenantData as TenantWithProfile[])?.map(t => ({
         id: t.tenant_id,
         full_name: t.profiles?.full_name || 'Unknown',
         unit_number: t.unit_number
