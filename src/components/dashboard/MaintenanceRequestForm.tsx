@@ -13,6 +13,8 @@ interface MaintenanceRequestFormProps {
 
 const MaintenanceRequestForm = ({ onClose }: MaintenanceRequestFormProps) => {
   const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -31,10 +33,6 @@ const MaintenanceRequestForm = ({ onClose }: MaintenanceRequestFormProps) => {
         .single();
 
       if (!tenantUnit) throw new Error("No unit found for tenant");
-
-      const formData = new FormData(e.currentTarget);
-      const title = formData.get("title") as string;
-      const description = formData.get("description") as string;
 
       const { error } = await supabase
         .from("maintenance_requests")
@@ -84,9 +82,10 @@ const MaintenanceRequestForm = ({ onClose }: MaintenanceRequestFormProps) => {
             <Label htmlFor="title">Issue Title</Label>
             <Input
               id="title"
-              name="title"
               required
               placeholder="Brief description of the issue"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
             />
           </div>
 
@@ -94,10 +93,11 @@ const MaintenanceRequestForm = ({ onClose }: MaintenanceRequestFormProps) => {
             <Label htmlFor="description">Detailed Description</Label>
             <Textarea
               id="description"
-              name="description"
               required
               placeholder="Please provide details about the maintenance issue"
               className="h-32"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 

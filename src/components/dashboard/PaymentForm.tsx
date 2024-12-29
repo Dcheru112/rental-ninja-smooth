@@ -12,6 +12,7 @@ interface PaymentFormProps {
 
 const PaymentForm = ({ onClose }: PaymentFormProps) => {
   const [loading, setLoading] = useState(false);
+  const [amount, setAmount] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -31,15 +32,12 @@ const PaymentForm = ({ onClose }: PaymentFormProps) => {
 
       if (!tenantUnit) throw new Error("No unit found for tenant");
 
-      const formData = new FormData(e.currentTarget);
-      const amount = parseFloat(formData.get("amount") as string);
-
       const { error } = await supabase
         .from("payments")
         .insert({
           tenant_id: user.id,
           property_id: tenantUnit.property_id,
-          amount,
+          amount: parseFloat(amount),
           status: "pending",
         });
 
@@ -81,12 +79,13 @@ const PaymentForm = ({ onClose }: PaymentFormProps) => {
             <Label htmlFor="amount">Payment Amount ($)</Label>
             <Input
               id="amount"
-              name="amount"
               type="number"
               required
               min="0"
               step="0.01"
               placeholder="Enter amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
             />
           </div>
 
