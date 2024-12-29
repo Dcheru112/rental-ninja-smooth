@@ -16,7 +16,7 @@ const Navbar = () => {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error) {
           console.error("Error fetching user:", error);
-          if (error.status === 403 && error.message.includes("user_not_found")) {
+          if (error.status === 403) {
             await handleInvalidSession();
           }
           return;
@@ -35,8 +35,8 @@ const Navbar = () => {
       if (event === 'SIGNED_OUT') {
         setUser(null);
         navigate("/");
-      } else {
-        setUser(session?.user ?? null);
+      } else if (session?.user) {
+        setUser(session.user);
       }
     });
 
@@ -63,7 +63,7 @@ const Navbar = () => {
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Signout error:", error);
-        if (error.status === 403 && error.message.includes("user_not_found")) {
+        if (error.status === 403) {
           await handleInvalidSession();
           return;
         }
