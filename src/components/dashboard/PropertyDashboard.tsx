@@ -51,13 +51,13 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
       console.log("Payments:", paymentData);
       setPayments(paymentData || []);
 
-      // Fetch tenants with their profiles
+      // Fetch tenants with their profiles using an inner join
       const { data: tenantData, error: tenantsError } = await supabase
         .from("tenant_units")
         .select(`
           tenant_id,
           unit_number,
-          profiles!inner (
+          profiles (
             full_name
           )
         `)
@@ -71,7 +71,7 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
       
       const formattedTenants = tenantData?.map(t => ({
         id: t.tenant_id,
-        full_name: t.profiles.full_name || 'Unknown',
+        full_name: t.profiles?.full_name || 'Unknown',
         unit_number: t.unit_number
       })) || [];
       
