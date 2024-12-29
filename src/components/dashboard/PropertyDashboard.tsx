@@ -59,13 +59,13 @@ const PropertyDashboard = ({ property, onBack }: PropertyDashboardProps) => {
       console.log("Payments:", paymentData);
       setPayments(paymentData || []);
 
-      // Fetch tenants with their profiles
+      // Fetch tenants with their profiles using the updated join
       const { data: tenantData, error: tenantsError } = await supabase
         .from("tenant_units")
         .select(`
           tenant_id,
           unit_number,
-          profiles (
+          profiles!inner (
             full_name
           )
         `)
