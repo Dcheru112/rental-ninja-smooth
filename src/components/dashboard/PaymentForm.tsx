@@ -20,19 +20,38 @@ const PaymentForm = ({ onClose }: PaymentFormProps) => {
     setLoading(true);
 
     try {
+      console.log("Starting payment submission...");
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
+      
+      if (!user) {
+        console.error("No authenticated user found");
+        throw new Error("No authenticated user");
+      }
 
-      // Get the tenant's unit
-      const { data: tenantUnit } = await supabase
+      console.log("Fetching tenant unit for user:", user.id);
+      const { data: tenantUnit, error: unitError } = await supabase
         .from("tenant_units")
         .select("property_id")
         .eq("tenant_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (!tenantUnit) throw new Error("No unit found for tenant");
+      if (unitError) {
+        console.error("Error fetching tenant unit:", unitError);
+        throw unitError;
+      }
 
-      const { error } = await supabase
+      if (!tenantUnit) {
+        console.error("No unit found for tenant");
+        throw new Error("No unit found for tenant");
+      }
+
+      console.log("Submitting payment with data:", {
+        tenant_id: user.id,
+        property_id: tenantUnit.property_id,
+        amount: parseFloat(amount)
+      });
+
+      const { error: insertError } = await supabase
         .from("payments")
         .insert({
           tenant_id: user.id,
@@ -41,8 +60,12 @@ const PaymentForm = ({ onClose }: PaymentFormProps) => {
           status: "pending",
         });
 
-      if (error) throw error;
+      if (insertError) {
+        console.error("Error inserting payment:", insertError);
+        throw insertError;
+      }
 
+      console.log("Payment submitted successfully");
       toast({
         title: "Success",
         description: "Payment submitted successfully!",
@@ -52,7 +75,7 @@ const PaymentForm = ({ onClose }: PaymentFormProps) => {
       console.error("Error submitting payment:", error);
       toast({
         title: "Error",
-        description: "Failed to submit payment",
+        description: "Failed to submit payment. Please try again.",
         variant: "destructive",
       });
     } finally {

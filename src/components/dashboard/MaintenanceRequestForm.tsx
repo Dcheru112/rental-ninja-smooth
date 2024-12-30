@@ -22,19 +22,39 @@ const MaintenanceRequestForm = ({ onClose }: MaintenanceRequestFormProps) => {
     setLoading(true);
 
     try {
+      console.log("Starting maintenance request submission...");
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No authenticated user");
+      
+      if (!user) {
+        console.error("No authenticated user found");
+        throw new Error("No authenticated user");
+      }
 
-      // Get the tenant's unit
-      const { data: tenantUnit } = await supabase
+      console.log("Fetching tenant unit for user:", user.id);
+      const { data: tenantUnit, error: unitError } = await supabase
         .from("tenant_units")
         .select("property_id")
         .eq("tenant_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (!tenantUnit) throw new Error("No unit found for tenant");
+      if (unitError) {
+        console.error("Error fetching tenant unit:", unitError);
+        throw unitError;
+      }
 
-      const { error } = await supabase
+      if (!tenantUnit) {
+        console.error("No unit found for tenant");
+        throw new Error("No unit found for tenant");
+      }
+
+      console.log("Submitting maintenance request with data:", {
+        tenant_id: user.id,
+        property_id: tenantUnit.property_id,
+        title,
+        description
+      });
+
+      const { error: insertError } = await supabase
         .from("maintenance_requests")
         .insert({
           tenant_id: user.id,
@@ -44,8 +64,12 @@ const MaintenanceRequestForm = ({ onClose }: MaintenanceRequestFormProps) => {
           status: "pending",
         });
 
-      if (error) throw error;
+      if (insertError) {
+        console.error("Error inserting maintenance request:", insertError);
+        throw insertError;
+      }
 
+      console.log("Maintenance request submitted successfully");
       toast({
         title: "Success",
         description: "Maintenance request submitted successfully!",
@@ -55,7 +79,7 @@ const MaintenanceRequestForm = ({ onClose }: MaintenanceRequestFormProps) => {
       console.error("Error submitting maintenance request:", error);
       toast({
         title: "Error",
-        description: "Failed to submit maintenance request",
+        description: "Failed to submit maintenance request. Please try again.",
         variant: "destructive",
       });
     } finally {
