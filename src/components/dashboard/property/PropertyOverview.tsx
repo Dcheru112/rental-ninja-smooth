@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 import { Property } from "@/types/property";
 
 interface PropertyOverviewProps {
@@ -7,30 +8,35 @@ interface PropertyOverviewProps {
   availableUnits: number;
 }
 
-const PropertyOverview = ({ 
-  property, 
-  tenantCount, 
+const PropertyOverview = ({
+  property,
+  tenantCount,
   pendingMaintenanceCount,
-  availableUnits 
+  availableUnits,
 }: PropertyOverviewProps) => {
+  const occupancyRate = ((tenantCount / property.units) * 100).toFixed(1);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h3 className="font-semibold mb-2">Total Units</h3>
-        <p className="text-2xl">{property.units}</p>
-      </div>
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h3 className="font-semibold mb-2">Active Tenants</h3>
-        <p className="text-2xl">{tenantCount}</p>
-      </div>
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h3 className="font-semibold mb-2">Available Units</h3>
-        <p className="text-2xl">{availableUnits}</p>
-      </div>
-      <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h3 className="font-semibold mb-2">Pending Maintenance</h3>
-        <p className="text-2xl">{pendingMaintenanceCount}</p>
-      </div>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <Card className="p-4">
+        <h3 className="text-sm font-medium text-gray-500">Total Units</h3>
+        <p className="mt-2 text-3xl font-semibold">{property.units}</p>
+      </Card>
+      
+      <Card className="p-4">
+        <h3 className="text-sm font-medium text-gray-500">Available Units</h3>
+        <p className="mt-2 text-3xl font-semibold">{availableUnits}</p>
+      </Card>
+      
+      <Card className="p-4">
+        <h3 className="text-sm font-medium text-gray-500">Occupancy Rate</h3>
+        <p className="mt-2 text-3xl font-semibold">{occupancyRate}%</p>
+      </Card>
+      
+      <Card className="p-4">
+        <h3 className="text-sm font-medium text-gray-500">Pending Maintenance</h3>
+        <p className="mt-2 text-3xl font-semibold">{pendingMaintenanceCount}</p>
+      </Card>
     </div>
   );
 };
