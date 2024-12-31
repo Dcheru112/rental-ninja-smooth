@@ -1,9 +1,30 @@
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+
 interface MaintenanceRequest {
   id: string;
   title: string;
   description: string;
   status: string;
   created_at: string;
+  tenant_id: string;
 }
 
 interface MaintenanceTableProps {
@@ -11,49 +32,99 @@ interface MaintenanceTableProps {
 }
 
 const MaintenanceTable = ({ requests }: MaintenanceTableProps) => {
+  const { toast } = useToast();
+  const [updating, setUpdating] = useState<string | null>(null);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "in_progress":
+        return "bg-blue-100 text-blue-800";
+      case "completed":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handleStatusUpdate = async (requestId: string, newStatus: string) => {
+    console.log("Updating maintenance request status:", { requestId, newStatus });
+    setUpdating(requestId);
+    try {
+      const { error } = await supabase
+        .from("maintenance_requests")
+        .update({ status: newStatus })
+        .eq("id", requestId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Status updated",
+        description: "Maintenance request status has been updated successfully.",
+      });
+    } catch (error) {
+      console.error("Error updating maintenance request status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update maintenance request status.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdating(null);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Issue
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Date
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Title</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Created At</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {requests.map((request) => (
-            <tr key={request.id}>
-              <td className="px-6 py-4">
-                <div className="text-sm font-medium text-gray-900">
-                  {request.title}
-                </div>
-                <div className="text-sm text-gray-500">
-                  {request.description}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  request.status === 'pending' 
-                    ? 'bg-yellow-100 text-yellow-800' 
-                    : 'bg-green-100 text-green-800'
-                }`}>
-                  {request.status}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <TableRow key={request.id}>
+              <TableCell className="font-medium">{request.title}</TableCell>
+              <TableCell>{request.description}</TableCell>
+              <TableCell>
+                <Select
+                  defaultValue={request.status}
+                  disabled={updating === request.id}
+                  onValueChange={(value) => handleStatusUpdate(request.id, value)}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue>
+                      <Badge className={getStatusColor(request.status)}>
+                        {request.status.replace("_", " ")}
+                      </Badge>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </TableCell>
+              <TableCell>
                 {new Date(request.created_at).toLocaleDateString()}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+          {requests.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center text-muted-foreground">
+                No maintenance requests found.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 };
