@@ -13,10 +13,19 @@ interface TenantUnit {
   unit_number: string;
 }
 
+interface MaintenanceRequest {
+  id: string;
+  title: string;
+  description: string;
+  status: string;
+  created_at: string;
+}
+
 const TenantDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [tenantUnit, setTenantUnit] = useState<TenantUnit | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
+  const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequest[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -37,6 +46,30 @@ const TenantDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to load properties",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchMaintenanceRequests = async (propertyId: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("maintenance_requests")
+        .select("*")
+        .eq("tenant_id", user.id)
+        .eq("property_id", propertyId)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setMaintenanceRequests(data || []);
+    } catch (error) {
+      console.error("Error fetching maintenance requests:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load maintenance requests",
         variant: "destructive",
       });
     }
@@ -65,6 +98,8 @@ const TenantDashboard = () => {
           property: unitData.properties,
           unit_number: unitData.unit_number,
         });
+        // Fetch maintenance requests when tenant unit is found
+        await fetchMaintenanceRequests(unitData.properties.id);
       } else {
         console.log("No tenant unit found");
       }
@@ -78,6 +113,10 @@ const TenantDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleMaintenanceRequestsUpdate = (updatedRequests: MaintenanceRequest[]) => {
+    setMaintenanceRequests(updatedRequests);
   };
 
   if (loading) {
@@ -112,7 +151,10 @@ const TenantDashboard = () => {
       />
 
       <div className="space-y-8">
-        <TenantMaintenanceRequest propertyId={tenantUnit.property.id} />
+        <TenantMaintenanceRequest 
+          requests={maintenanceRequests}
+          onRequestsUpdate={handleMaintenanceRequestsUpdate}
+        />
         <TenantPayments propertyId={tenantUnit.property.id} />
       </div>
     </div>
