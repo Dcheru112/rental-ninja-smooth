@@ -7,6 +7,7 @@ import { User } from "@supabase/supabase-js";
 
 const Navbar = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -15,7 +16,7 @@ const Navbar = () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error) {
-          console.error("Error fetching user:", error);
+          console.log("User fetch error (expected if not logged in):", error.message);
           if (error.status === 403) {
             await handleInvalidSession();
           }
@@ -25,28 +26,38 @@ const Navbar = () => {
       } catch (error) {
         console.error("Error in getUser:", error);
         await handleInvalidSession();
+      } finally {
+        setIsLoading(false);
       }
     };
 
+    // Initialize auth state
     getUser();
 
+    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session?.user?.id);
-      if (event === 'SIGNED_OUT') {
+      
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         setUser(null);
         navigate("/");
       } else if (session?.user) {
         setUser(session.user);
       }
+      
+      setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleInvalidSession = async () => {
     try {
       await supabase.auth.signOut();
       setUser(null);
+      setIsLoading(false);
       navigate("/login");
       toast({
         title: "Session Expired",
@@ -55,11 +66,13 @@ const Navbar = () => {
       });
     } catch (error) {
       console.error("Error handling invalid session:", error);
+      setIsLoading(false);
     }
   };
 
   const handleSignOut = async () => {
     try {
+      setIsLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Signout error:", error);
@@ -77,8 +90,30 @@ const Navbar = () => {
     } catch (error) {
       console.error("Failed to sign out:", error);
       await handleInvalidSession();
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <nav className="bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center">
+              <Button
+                variant="ghost"
+                className="text-xl font-semibold"
+                disabled
+              >
+                Property Manager
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="bg-white shadow-sm">
@@ -106,6 +141,7 @@ const Navbar = () => {
                 <Button
                   variant="outline"
                   onClick={handleSignOut}
+                  disabled={isLoading}
                 >
                   Sign Out
                 </Button>
