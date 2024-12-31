@@ -109,8 +109,6 @@ const TenantDashboard = () => {
 
       <TenantActions
         unitNumber={tenantUnit.unit_number}
-        onMaintenanceClick={() => setShowMaintenanceForm(true)}
-        onPaymentClick={() => setShowPaymentForm(true)}
       />
 
       <div className="space-y-8">

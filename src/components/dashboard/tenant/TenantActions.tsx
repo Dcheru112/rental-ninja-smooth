@@ -1,44 +1,50 @@
-import { Home, Wrench, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useState } from "react";
+import MaintenanceRequestForm from "../MaintenanceRequestForm";
+import PaymentForm from "../PaymentForm";
 
 interface TenantActionsProps {
   unitNumber: string;
-  onMaintenanceClick: () => void;
-  onPaymentClick: () => void;
 }
 
-const TenantActions = ({ unitNumber, onMaintenanceClick, onPaymentClick }: TenantActionsProps) => {
-  return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-      <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-        <div className="flex items-center space-x-2">
-          <Home className="h-6 w-6 text-primary" />
-          <h2 className="text-xl font-semibold">Your Unit</h2>
-        </div>
-        <p className="text-gray-600">Unit {unitNumber}</p>
-      </div>
+const TenantActions = ({ unitNumber }: TenantActionsProps) => {
+  const [showMaintenanceForm, setShowMaintenanceForm] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
 
-      <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-        <div className="flex items-center space-x-2">
-          <Wrench className="h-6 w-6 text-primary" />
-          <h2 className="text-xl font-semibold">Maintenance</h2>
-        </div>
-        <p className="text-gray-600">Report maintenance issues</p>
-        <Button onClick={onMaintenanceClick}>
+  return (
+    <div className="grid gap-4 md:grid-cols-2 my-8">
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Maintenance Request</h3>
+        <p className="text-gray-600 mb-4">
+          Submit a maintenance request for your unit {unitNumber}
+        </p>
+        <Button onClick={() => setShowMaintenanceForm(true)}>
           Submit Request
         </Button>
-      </div>
+      </Card>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-        <div className="flex items-center space-x-2">
-          <CreditCard className="h-6 w-6 text-primary" />
-          <h2 className="text-xl font-semibold">Payments</h2>
-        </div>
-        <p className="text-gray-600">Make rent payments</p>
-        <Button onClick={onPaymentClick}>
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Make a Payment</h3>
+        <p className="text-gray-600 mb-4">
+          Submit your rent payment for unit {unitNumber}
+        </p>
+        <Button onClick={() => setShowPaymentForm(true)}>
           Make Payment
         </Button>
-      </div>
+      </Card>
+
+      {showMaintenanceForm && (
+        <MaintenanceRequestForm
+          onClose={() => setShowMaintenanceForm(false)}
+        />
+      )}
+
+      {showPaymentForm && (
+        <PaymentForm
+          onClose={() => setShowPaymentForm(false)}
+        />
+      )}
     </div>
   );
 };
