@@ -197,7 +197,7 @@ export type Database = {
     Functions: {
       get_available_units: {
         Args: {
-          property_id: string
+          p_property_id: string
         }
         Returns: number
       }

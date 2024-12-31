@@ -53,6 +53,7 @@ const TenantDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      console.log("Checking tenant unit for user:", user.id);
       const { data: unitData, error: unitError } = await supabase
         .from("tenant_units")
         .select(`
@@ -65,11 +66,14 @@ const TenantDashboard = () => {
       if (unitError) throw unitError;
 
       if (unitData) {
+        console.log("Found tenant unit:", unitData);
         setTenantUnit({
           property: unitData.properties,
           unit_number: unitData.unit_number,
         });
         await fetchTenantData(unitData.properties.id);
+      } else {
+        console.log("No tenant unit found");
       }
     } catch (error) {
       console.error("Error checking tenant unit:", error);
@@ -88,23 +92,68 @@ const TenantDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: requests } = await supabase
+      console.log("Fetching tenant data for property:", propertyId);
+      
+      // Fetch maintenance requests with real-time subscription
+      const { data: requests, error: requestsError } = await supabase
         .from("maintenance_requests")
         .select("*")
         .eq("tenant_id", user.id)
         .eq("property_id", propertyId)
         .order("created_at", { ascending: false });
 
+      if (requestsError) throw requestsError;
+      console.log("Maintenance requests:", requests);
       setMaintenanceRequests(requests || []);
 
-      const { data: paymentData } = await supabase
+      // Set up real-time subscription for maintenance requests
+      const maintenanceSubscription = supabase
+        .channel('maintenance_changes')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'maintenance_requests',
+            filter: `tenant_id=eq.${user.id}` 
+          }, 
+          () => {
+            fetchTenantData(propertyId);
+          }
+        )
+        .subscribe();
+
+      // Fetch payments with real-time subscription
+      const { data: paymentData, error: paymentError } = await supabase
         .from("payments")
         .select("*")
         .eq("tenant_id", user.id)
         .eq("property_id", propertyId)
         .order("payment_date", { ascending: false });
 
+      if (paymentError) throw paymentError;
+      console.log("Payments:", paymentData);
       setPayments(paymentData || []);
+
+      // Set up real-time subscription for payments
+      const paymentSubscription = supabase
+        .channel('payment_changes')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'payments',
+            filter: `tenant_id=eq.${user.id}` 
+          }, 
+          () => {
+            fetchTenantData(propertyId);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        maintenanceSubscription.unsubscribe();
+        paymentSubscription.unsubscribe();
+      };
     } catch (error) {
       console.error("Error fetching tenant data:", error);
     }
@@ -150,13 +199,19 @@ const TenantDashboard = () => {
 
       {showMaintenanceForm && (
         <MaintenanceRequestForm
-          onClose={() => setShowMaintenanceForm(false)}
+          onClose={() => {
+            setShowMaintenanceForm(false);
+            fetchTenantData(tenantUnit.property.id);
+          }}
         />
       )}
 
       {showPaymentForm && (
         <PaymentForm
-          onClose={() => setShowPaymentForm(false)}
+          onClose={() => {
+            setShowPaymentForm(false);
+            fetchTenantData(tenantUnit.property.id);
+          }}
         />
       )}
     </div>
