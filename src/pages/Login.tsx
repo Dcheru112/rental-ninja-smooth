@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -77,6 +78,15 @@ const Login = () => {
                 required
                 className="mt-1"
               />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Link
+                to="/reset-password"
+                className="text-sm font-medium text-primary hover:text-primary/90"
+              >
+                Forgot your password?
+              </Link>
             </div>
 
             <button
