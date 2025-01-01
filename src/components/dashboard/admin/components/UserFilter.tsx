@@ -24,14 +24,14 @@ const UserFilter = ({
         />
       </div>
       <Select
-        value={filterRole || ""}
-        onValueChange={(value) => onFilterChange(value || null)}
+        value={filterRole || "all"}
+        onValueChange={(value) => onFilterChange(value === "all" ? null : value)}
       >
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Filter by role" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All roles</SelectItem>
+          <SelectItem value="all">All roles</SelectItem>
           <SelectItem value="admin">Admin</SelectItem>
           <SelectItem value="owner">Owner</SelectItem>
           <SelectItem value="tenant">Tenant</SelectItem>
