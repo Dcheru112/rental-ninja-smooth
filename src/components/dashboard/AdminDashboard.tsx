@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import AdminDashboardContent from "./admin/AdminDashboardContent";
-import type { Statistics, PropertyOwner } from "./admin/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SystemStats from "./admin/SystemStats";
+import UserManagement from "./admin/UserManagement";
+import type { Statistics } from "./admin/types";
 
 const AdminDashboard = () => {
-  const [owners, setOwners] = useState<PropertyOwner[]>([]);
   const [statistics, setStatistics] = useState<Statistics>({
     totalProperties: 0,
     totalTenants: 0,
@@ -24,31 +25,6 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       console.log("Fetching admin dashboard data");
-
-      // Fetch property owners with property counts
-      const { data: ownerProfiles, error: profilesError } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .eq("role", "owner");
-
-      if (profilesError) throw profilesError;
-
-      const ownersWithProperties = await Promise.all(
-        (ownerProfiles || []).map(async (owner) => {
-          const { count } = await supabase
-            .from("properties")
-            .select("*", { count: "exact", head: true })
-            .eq("owner_id", owner.id);
-
-          return {
-            id: owner.id,
-            full_name: owner.full_name || "Unknown",
-            properties_count: count || 0,
-          };
-        })
-      );
-
-      setOwners(ownersWithProperties);
 
       // Fetch overall statistics
       const [
@@ -108,12 +84,22 @@ const AdminDashboard = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-      <AdminDashboardContent
-        statistics={statistics}
-        owners={owners}
-        onRefresh={fetchDashboardData}
-      />
+      <h1 className="text-3xl font-bold mb-6 animate-fade-down">Admin Dashboard</h1>
+      
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="overview">System Overview</TabsTrigger>
+          <TabsTrigger value="users">User Management</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          <SystemStats statistics={statistics} />
+        </TabsContent>
+
+        <TabsContent value="users">
+          <UserManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
