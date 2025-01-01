@@ -29,7 +29,7 @@ const UserList = ({ users, onUpdateRole }: UserListProps) => {
                 Role
               </Label>
               <Select
-                value={user.role || ""}
+                value={user.role || "tenant"}
                 onValueChange={(value) => onUpdateRole(user.id, value)}
               >
                 <SelectTrigger className="w-[130px]">
