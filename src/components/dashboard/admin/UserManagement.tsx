@@ -18,15 +18,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, UserPlus, RefreshCw } from "lucide-react";
+import { Search, RefreshCw } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface User {
   id: string;
-  email: string;
-  role: string;
+  email: string | null;
   full_name: string;
   phone_number: string | null;
+  role: string;
   created_at: string;
   last_sign_in_at: string | null;
 }
@@ -47,15 +47,31 @@ const UserManagement = () => {
       setLoading(true);
       console.log("Fetching users data...");
       
-      const { data: profiles, error } = await supabase
+      // First get profiles
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (profilesError) throw profilesError;
 
-      console.log("Fetched profiles:", profiles);
-      setUsers(profiles || []);
+      // Then get auth users for email and last sign in
+      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) throw authError;
+
+      // Combine the data
+      const combinedUsers: User[] = profiles?.map(profile => {
+        const authUser = authUsers.find(u => u.id === profile.id);
+        return {
+          ...profile,
+          email: authUser?.email || null,
+          last_sign_in_at: authUser?.last_sign_in_at || null,
+        };
+      }) || [];
+
+      console.log("Fetched profiles:", combinedUsers);
+      setUsers(combinedUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast({
