@@ -28,31 +28,23 @@ const UserManagement = () => {
       setLoading(true);
       console.log("Fetching users data...");
       
-      // First get profiles
-      const { data: profiles, error: profilesError } = await supabase
+      const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (profilesError) throw profilesError;
+      if (error) throw error;
 
-      // Then get auth users for email and last sign in
-      const { data: { users: authUsers }, error: authError } = await supabase.auth.admin.listUsers();
+      console.log("Fetched profiles:", profiles);
       
-      if (authError) throw authError;
+      // Transform profiles into AdminUser type
+      const transformedUsers: AdminUser[] = profiles.map(profile => ({
+        ...profile,
+        email: null, // We can't get emails without admin access
+        last_sign_in_at: null
+      }));
 
-      // Combine the data
-      const combinedUsers: AdminUser[] = profiles?.map(profile => {
-        const authUser = authUsers.find(u => u.id === profile.id);
-        return {
-          ...profile,
-          email: authUser?.email || null,
-          last_sign_in_at: authUser?.last_sign_in_at || null,
-        };
-      }) || [];
-
-      console.log("Fetched profiles:", combinedUsers);
-      setUsers(combinedUsers);
+      setUsers(transformedUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast({
@@ -92,8 +84,7 @@ const UserManagement = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = user.full_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = !filterRole || user.role === filterRole;
     return matchesSearch && matchesRole;
   });

@@ -14,7 +14,9 @@ const UserList = ({ users, onUpdateRole }: UserListProps) => {
           >
             <div className="space-y-1 mb-2 md:mb-0">
               <h4 className="text-sm font-medium">{user.full_name}</h4>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
+              {user.email && (
+                <p className="text-sm text-muted-foreground">{user.email}</p>
+              )}
               <p className="text-xs text-muted-foreground">
                 Joined: {new Date(user.created_at).toLocaleDateString()}
               </p>

@@ -1,5 +1,3 @@
-import { User as AuthUser } from '@supabase/supabase-js';
-
 export interface AdminUser {
   id: string;
   email: string | null;
