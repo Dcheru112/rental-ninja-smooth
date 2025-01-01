@@ -8,31 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Search, RefreshCw } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-
-interface User {
-  id: string;
-  email: string | null;
-  full_name: string;
-  phone_number: string | null;
-  role: string;
-  created_at: string;
-  last_sign_in_at: string | null;
-}
+import UserList from "./components/UserList";
+import UserFilter from "./components/UserFilter";
+import type { AdminUser } from "./types/adminTypes";
 
 const UserManagement = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState<string | null>(null);
@@ -61,7 +42,7 @@ const UserManagement = () => {
       if (authError) throw authError;
 
       // Combine the data
-      const combinedUsers: User[] = profiles?.map(profile => {
+      const combinedUsers: AdminUser[] = profiles?.map(profile => {
         const authUser = authUsers.find(u => u.id === profile.id);
         return {
           ...profile,
@@ -127,81 +108,18 @@ const UserManagement = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col space-y-4">
-          <div className="flex flex-col md:flex-row justify-between gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <Select
-              value={filterRole || ""}
-              onValueChange={(value) => setFilterRole(value || null)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All roles</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="owner">Owner</SelectItem>
-                <SelectItem value="tenant">Tenant</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={fetchUsers}
-              disabled={loading}
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
-
-          <ScrollArea className="h-[500px] rounded-md border">
-            <div className="p-4">
-              {filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 border rounded-lg mb-4 hover:bg-accent/5 transition-colors"
-                >
-                  <div className="space-y-1 mb-2 md:mb-0">
-                    <h4 className="text-sm font-medium">{user.full_name}</h4>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Joined: {new Date(user.created_at).toLocaleDateString()}
-                    </p>
-                    {user.phone_number && (
-                      <p className="text-xs text-muted-foreground">
-                        Phone: {user.phone_number}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor={`role-${user.id}`} className="sr-only">
-                      Role
-                    </Label>
-                    <Select
-                      value={user.role || ""}
-                      onValueChange={(value) => updateUserRole(user.id, value)}
-                    >
-                      <SelectTrigger className="w-[130px]">
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="owner">Owner</SelectItem>
-                        <SelectItem value="tenant">Tenant</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
+          <UserFilter
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            filterRole={filterRole}
+            onFilterChange={setFilterRole}
+            onRefresh={fetchUsers}
+            loading={loading}
+          />
+          <UserList 
+            users={filteredUsers}
+            onUpdateRole={updateUserRole}
+          />
         </div>
       </CardContent>
     </Card>
