@@ -28,12 +28,12 @@ interface MaintenanceRequest {
   created_at: string;
   tenant_id: string;
   property_id: string;
-  tenant: {
-    full_name: string;
-  };
-  property: {
+  tenant?: {
+    full_name: string | null;
+  } | null;
+  property?: {
     name: string;
-  };
+  } | null;
 }
 
 interface MaintenanceManagementProps {
@@ -56,7 +56,7 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
         .from("maintenance_requests")
         .select(`
           *,
-          tenant:profiles!maintenance_requests_tenant_id_fkey(full_name),
+          tenant:profiles(full_name),
           property:properties(name)
         `)
         .order("created_at", { ascending: false });
@@ -153,8 +153,8 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
                   <TableCell>
                     {new Date(request.created_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{request.tenant?.full_name}</TableCell>
-                  <TableCell>{request.property?.name}</TableCell>
+                  <TableCell>{request.tenant?.full_name || 'Unknown'}</TableCell>
+                  <TableCell>{request.property?.name || 'Unknown'}</TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">{request.title}</div>

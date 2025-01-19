@@ -27,12 +27,12 @@ interface Payment {
   payment_date: string;
   tenant_id: string;
   property_id: string;
-  tenant: {
-    full_name: string;
-  };
-  property: {
+  tenant?: {
+    full_name: string | null;
+  } | null;
+  property?: {
     name: string;
-  };
+  } | null;
 }
 
 interface PaymentManagementProps {
@@ -55,7 +55,7 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
         .from("payments")
         .select(`
           *,
-          tenant:profiles!payments_tenant_id_fkey(full_name),
+          tenant:profiles(full_name),
           property:properties(name)
         `)
         .order("payment_date", { ascending: false });
@@ -152,8 +152,8 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
                   <TableCell>
                     {new Date(payment.payment_date).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{payment.tenant?.full_name}</TableCell>
-                  <TableCell>{payment.property?.name}</TableCell>
+                  <TableCell>{payment.tenant?.full_name || 'Unknown'}</TableCell>
+                  <TableCell>{payment.property?.name || 'Unknown'}</TableCell>
                   <TableCell>${payment.amount}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(payment.status)}>
