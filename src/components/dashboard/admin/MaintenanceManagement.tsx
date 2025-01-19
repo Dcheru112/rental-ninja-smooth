@@ -33,6 +33,9 @@ interface MaintenanceRequest {
   } | null;
   property?: {
     name: string;
+    owner?: {
+      full_name: string | null;
+    } | null;
   } | null;
 }
 
@@ -56,16 +59,18 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
         .from("maintenance_requests")
         .select(`
           *,
-          tenant:profiles(full_name),
-          property:properties(name)
+          tenant:profiles!maintenance_requests_tenant_id_fkey(full_name),
+          property:properties(
+            name,
+            owner:profiles!properties_owner_id_fkey(full_name)
+          )
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       console.log("Fetched maintenance requests:", maintenanceData);
-      const typedData = (maintenanceData || []) as MaintenanceRequest[];
-      setRequests(typedData);
+      setRequests(maintenanceData || []);
     } catch (error) {
       console.error("Error fetching maintenance requests:", error);
       toast({
@@ -143,6 +148,7 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
                 <TableHead>Date</TableHead>
                 <TableHead>Tenant</TableHead>
                 <TableHead>Property</TableHead>
+                <TableHead>Owner</TableHead>
                 <TableHead>Issue</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -156,6 +162,7 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
                   </TableCell>
                   <TableCell>{request.tenant?.full_name || 'Unknown'}</TableCell>
                   <TableCell>{request.property?.name || 'Unknown'}</TableCell>
+                  <TableCell>{request.property?.owner?.full_name || 'Unknown'}</TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">{request.title}</div>
@@ -191,7 +198,7 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
               {requests.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center text-muted-foreground"
                   >
                     No maintenance requests found.

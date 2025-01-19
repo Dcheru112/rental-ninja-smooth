@@ -32,6 +32,9 @@ interface Payment {
   } | null;
   property?: {
     name: string;
+    owner?: {
+      full_name: string | null;
+    } | null;
   } | null;
 }
 
@@ -55,11 +58,10 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
         .from("payments")
         .select(`
           *,
-          tenant:tenant_id(
-            full_name
-          ),
+          tenant:profiles!payments_tenant_id_fkey(full_name),
           property:properties(
-            name
+            name,
+            owner:profiles!properties_owner_id_fkey(full_name)
           )
         `)
         .order("payment_date", { ascending: false });
@@ -145,6 +147,7 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
                 <TableHead>Date</TableHead>
                 <TableHead>Tenant</TableHead>
                 <TableHead>Property</TableHead>
+                <TableHead>Owner</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -158,6 +161,7 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
                   </TableCell>
                   <TableCell>{payment.tenant?.full_name || 'Unknown'}</TableCell>
                   <TableCell>{payment.property?.name || 'Unknown'}</TableCell>
+                  <TableCell>{payment.property?.owner?.full_name || 'Unknown'}</TableCell>
                   <TableCell>${payment.amount}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(payment.status)}>
@@ -186,7 +190,7 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
               {payments.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center text-muted-foreground"
                   >
                     No payments found.
