@@ -52,19 +52,23 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
   const fetchRequests = async () => {
     try {
       console.log("Fetching maintenance requests...");
-      const { data, error } = await supabase
+      const { data: maintenanceData, error } = await supabase
         .from("maintenance_requests")
         .select(`
           *,
-          tenant:profiles(full_name),
-          property:properties(name)
+          tenant:tenant_id(
+            full_name
+          ),
+          property:properties(
+            name
+          )
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      console.log("Fetched maintenance requests:", data);
-      setRequests(data || []);
+      console.log("Fetched maintenance requests:", maintenanceData);
+      setRequests(maintenanceData as MaintenanceRequest[]);
     } catch (error) {
       console.error("Error fetching maintenance requests:", error);
       toast({

@@ -51,19 +51,23 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
   const fetchPayments = async () => {
     try {
       console.log("Fetching payments...");
-      const { data, error } = await supabase
+      const { data: paymentData, error } = await supabase
         .from("payments")
         .select(`
           *,
-          tenant:profiles(full_name),
-          property:properties(name)
+          tenant:tenant_id(
+            full_name
+          ),
+          property:properties(
+            name
+          )
         `)
         .order("payment_date", { ascending: false });
 
       if (error) throw error;
 
-      console.log("Fetched payments:", data);
-      setPayments(data || []);
+      console.log("Fetched payments:", paymentData);
+      setPayments(paymentData as Payment[]);
     } catch (error) {
       console.error("Error fetching payments:", error);
       toast({
