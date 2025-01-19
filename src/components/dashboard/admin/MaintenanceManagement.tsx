@@ -56,7 +56,7 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
         .from("maintenance_requests")
         .select(`
           *,
-          tenant:profiles!maintenance_requests_tenant_id_fkey(full_name),
+          tenant:profiles(full_name),
           property:properties(name)
         `)
         .order("created_at", { ascending: false });
@@ -64,7 +64,8 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
       if (error) throw error;
 
       console.log("Fetched maintenance requests:", maintenanceData);
-      setRequests(maintenanceData || []);
+      const typedData = (maintenanceData || []) as MaintenanceRequest[];
+      setRequests(typedData);
     } catch (error) {
       console.error("Error fetching maintenance requests:", error);
       toast({
