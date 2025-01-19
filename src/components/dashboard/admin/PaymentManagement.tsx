@@ -55,16 +55,19 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
         .from("payments")
         .select(`
           *,
-          tenant:profiles(full_name),
-          property:properties(name)
+          tenant:tenant_id(
+            full_name
+          ),
+          property:properties(
+            name
+          )
         `)
         .order("payment_date", { ascending: false });
 
       if (error) throw error;
 
       console.log("Fetched payments:", paymentData);
-      const typedData = (paymentData || []) as Payment[];
-      setPayments(typedData);
+      setPayments(paymentData || []);
     } catch (error) {
       console.error("Error fetching payments:", error);
       toast({
