@@ -58,10 +58,14 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
         .from("payments")
         .select(`
           *,
-          tenant:profiles!payments_tenant_id_fkey(full_name),
+          tenant:tenant_id(
+            full_name
+          ),
           property:properties(
             name,
-            owner:profiles!properties_owner_id_fkey(full_name)
+            owner:owner_id(
+              full_name
+            )
           )
         `)
         .order("payment_date", { ascending: false });
