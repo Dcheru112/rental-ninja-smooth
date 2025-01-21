@@ -37,7 +37,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center space-y-6 sm:space-y-8 animate-fade-down">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white">
-              Property Management Made Easy
+              RentalEase: Simplify Your Property Management in Kenya
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto text-gray-100">
               Streamline your rental property management with our all-in-one
