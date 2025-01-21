@@ -28,8 +28,12 @@ interface MaintenanceRequest {
   created_at: string;
   tenant_id: string;
   property_id: string;
-  tenant_name: string | null;
-  property_name: string | null;
+  profiles: {
+    full_name: string;
+  } | null;
+  properties: {
+    name: string;
+  } | null;
 }
 
 interface MaintenanceManagementProps {
@@ -52,21 +56,15 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
         .from("maintenance_requests")
         .select(`
           *,
-          profiles!maintenance_requests_tenant_id_fkey (full_name),
-          properties!maintenance_requests_property_id_fkey (name)
+          profiles (full_name),
+          properties (name)
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const formattedRequests = data.map(request => ({
-        ...request,
-        tenant_name: request.profiles?.full_name || 'Unknown',
-        property_name: request.properties?.name || 'Unknown'
-      }));
-
-      console.log("Formatted maintenance requests:", formattedRequests);
-      setRequests(formattedRequests);
+      console.log("Maintenance requests data:", data);
+      setRequests(data || []);
     } catch (error) {
       console.error("Error fetching maintenance requests:", error);
       toast({
@@ -81,7 +79,6 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
 
   const updateRequestStatus = async (requestId: string, newStatus: string) => {
     try {
-      console.log("Updating request status:", { requestId, newStatus });
       const { error } = await supabase
         .from("maintenance_requests")
         .update({ status: newStatus })
@@ -154,8 +151,8 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
                   <TableCell>
                     {new Date(request.created_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{request.tenant_name}</TableCell>
-                  <TableCell>{request.property_name}</TableCell>
+                  <TableCell>{request.profiles?.full_name || "Unknown"}</TableCell>
+                  <TableCell>{request.properties?.name || "Unknown"}</TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">{request.title}</div>

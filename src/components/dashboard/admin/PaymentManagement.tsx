@@ -27,8 +27,12 @@ interface Payment {
   payment_date: string;
   tenant_id: string;
   property_id: string;
-  tenant_name: string | null;
-  property_name: string | null;
+  profiles: {
+    full_name: string;
+  } | null;
+  properties: {
+    name: string;
+  } | null;
 }
 
 interface PaymentManagementProps {
@@ -51,21 +55,15 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
         .from("payments")
         .select(`
           *,
-          profiles!payments_tenant_id_fkey (full_name),
-          properties!payments_property_id_fkey (name)
+          profiles (full_name),
+          properties (name)
         `)
         .order("payment_date", { ascending: false });
 
       if (error) throw error;
 
-      const formattedPayments = data.map(payment => ({
-        ...payment,
-        tenant_name: payment.profiles?.full_name || 'Unknown',
-        property_name: payment.properties?.name || 'Unknown'
-      }));
-
-      console.log("Formatted payments:", formattedPayments);
-      setPayments(formattedPayments);
+      console.log("Payments data:", data);
+      setPayments(data || []);
     } catch (error) {
       console.error("Error fetching payments:", error);
       toast({
@@ -80,7 +78,6 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
 
   const updatePaymentStatus = async (paymentId: string, newStatus: string) => {
     try {
-      console.log("Updating payment status:", { paymentId, newStatus });
       const { error } = await supabase
         .from("payments")
         .update({ status: newStatus })
@@ -153,8 +150,8 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
                   <TableCell>
                     {new Date(payment.payment_date).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{payment.tenant_name}</TableCell>
-                  <TableCell>{payment.property_name}</TableCell>
+                  <TableCell>{payment.profiles?.full_name || "Unknown"}</TableCell>
+                  <TableCell>{payment.properties?.name || "Unknown"}</TableCell>
                   <TableCell>${payment.amount}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(payment.status)}>
