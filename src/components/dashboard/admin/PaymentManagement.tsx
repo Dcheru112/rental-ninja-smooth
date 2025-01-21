@@ -27,15 +27,8 @@ interface Payment {
   payment_date: string;
   tenant_id: string;
   property_id: string;
-  tenant?: {
-    full_name: string | null;
-  } | null;
-  property?: {
-    name: string;
-    owner?: {
-      full_name: string | null;
-    } | null;
-  } | null;
+  tenant_name: string | null;
+  property_name: string | null;
 }
 
 interface PaymentManagementProps {
@@ -54,26 +47,25 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
   const fetchPayments = async () => {
     try {
       console.log("Fetching payments...");
-      const { data: paymentData, error } = await supabase
+      const { data, error } = await supabase
         .from("payments")
         .select(`
           *,
-          tenant:tenant_id(
-            full_name
-          ),
-          property:properties(
-            name,
-            owner:owner_id(
-              full_name
-            )
-          )
+          profiles!payments_tenant_id_fkey (full_name),
+          properties!payments_property_id_fkey (name)
         `)
         .order("payment_date", { ascending: false });
 
       if (error) throw error;
 
-      console.log("Fetched payments:", paymentData);
-      setPayments(paymentData || []);
+      const formattedPayments = data.map(payment => ({
+        ...payment,
+        tenant_name: payment.profiles?.full_name || 'Unknown',
+        property_name: payment.properties?.name || 'Unknown'
+      }));
+
+      console.log("Formatted payments:", formattedPayments);
+      setPayments(formattedPayments);
     } catch (error) {
       console.error("Error fetching payments:", error);
       toast({
@@ -101,7 +93,6 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
         description: "Payment status updated successfully",
       });
 
-      // Refresh payments list
       fetchPayments();
     } catch (error) {
       console.error("Error updating payment status:", error);
@@ -151,7 +142,6 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
                 <TableHead>Date</TableHead>
                 <TableHead>Tenant</TableHead>
                 <TableHead>Property</TableHead>
-                <TableHead>Owner</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -163,9 +153,8 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
                   <TableCell>
                     {new Date(payment.payment_date).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{payment.tenant?.full_name || 'Unknown'}</TableCell>
-                  <TableCell>{payment.property?.name || 'Unknown'}</TableCell>
-                  <TableCell>{payment.property?.owner?.full_name || 'Unknown'}</TableCell>
+                  <TableCell>{payment.tenant_name}</TableCell>
+                  <TableCell>{payment.property_name}</TableCell>
                   <TableCell>${payment.amount}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(payment.status)}>
@@ -194,7 +183,7 @@ const PaymentManagement = ({ onClose }: PaymentManagementProps) => {
               {payments.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="text-center text-muted-foreground"
                   >
                     No payments found.

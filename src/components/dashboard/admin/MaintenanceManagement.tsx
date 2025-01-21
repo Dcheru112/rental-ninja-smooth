@@ -28,15 +28,8 @@ interface MaintenanceRequest {
   created_at: string;
   tenant_id: string;
   property_id: string;
-  tenant?: {
-    full_name: string | null;
-  } | null;
-  property?: {
-    name: string;
-    owner?: {
-      full_name: string | null;
-    } | null;
-  } | null;
+  tenant_name: string | null;
+  property_name: string | null;
 }
 
 interface MaintenanceManagementProps {
@@ -55,26 +48,25 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
   const fetchRequests = async () => {
     try {
       console.log("Fetching maintenance requests...");
-      const { data: maintenanceData, error } = await supabase
+      const { data, error } = await supabase
         .from("maintenance_requests")
         .select(`
           *,
-          tenant:tenant_id(
-            full_name
-          ),
-          property:properties(
-            name,
-            owner:owner_id(
-              full_name
-            )
-          )
+          profiles!maintenance_requests_tenant_id_fkey (full_name),
+          properties!maintenance_requests_property_id_fkey (name)
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      console.log("Fetched maintenance requests:", maintenanceData);
-      setRequests(maintenanceData || []);
+      const formattedRequests = data.map(request => ({
+        ...request,
+        tenant_name: request.profiles?.full_name || 'Unknown',
+        property_name: request.properties?.name || 'Unknown'
+      }));
+
+      console.log("Formatted maintenance requests:", formattedRequests);
+      setRequests(formattedRequests);
     } catch (error) {
       console.error("Error fetching maintenance requests:", error);
       toast({
@@ -102,7 +94,6 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
         description: "Request status updated successfully",
       });
 
-      // Refresh requests list
       fetchRequests();
     } catch (error) {
       console.error("Error updating request status:", error);
@@ -152,7 +143,6 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
                 <TableHead>Date</TableHead>
                 <TableHead>Tenant</TableHead>
                 <TableHead>Property</TableHead>
-                <TableHead>Owner</TableHead>
                 <TableHead>Issue</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -164,9 +154,8 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
                   <TableCell>
                     {new Date(request.created_at).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>{request.tenant?.full_name || 'Unknown'}</TableCell>
-                  <TableCell>{request.property?.name || 'Unknown'}</TableCell>
-                  <TableCell>{request.property?.owner?.full_name || 'Unknown'}</TableCell>
+                  <TableCell>{request.tenant_name}</TableCell>
+                  <TableCell>{request.property_name}</TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">{request.title}</div>
@@ -202,7 +191,7 @@ const MaintenanceManagement = ({ onClose }: MaintenanceManagementProps) => {
               {requests.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="text-center text-muted-foreground"
                   >
                     No maintenance requests found.
