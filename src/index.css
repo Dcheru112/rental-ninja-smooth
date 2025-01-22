@@ -23,14 +23,29 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --radius: 1rem;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border rounded-md;
   }
+  
+  button, 
+  input, 
+  select, 
+  textarea {
+    @apply rounded-md;
+  }
+  
+  .card,
+  .dialog,
+  .modal,
+  .dropdown {
+    @apply rounded-lg;
+  }
+  
   body {
     @apply bg-background text-foreground antialiased min-h-screen;
   }

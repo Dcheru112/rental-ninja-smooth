@@ -18,6 +18,13 @@ export default {
       },
     },
     extend: {
+      borderRadius: {
+        DEFAULT: '1rem',
+        'lg': '1.5rem',
+        'md': '1rem',
+        'sm': '0.75rem',
+        'xl': '2rem',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -48,11 +55,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
         "fade-up": {
