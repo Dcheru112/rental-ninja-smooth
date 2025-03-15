@@ -28,14 +28,14 @@ const UserFilter = ({
       
       <div className="flex flex-col xs:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
         <Select 
-          value={filterStatus || ""} 
-          onValueChange={(value) => onFilterChange(value || null)}
+          value={filterStatus || "all"} 
+          onValueChange={(value) => onFilterChange(value === "all" ? null : value)}
         >
           <SelectTrigger className="w-full sm:w-[140px]">
             <SelectValue placeholder="Filter by status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Inactive</SelectItem>
             <SelectItem value="suspended">Suspended</SelectItem>
