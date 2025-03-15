@@ -1,3 +1,4 @@
+
 export interface AdminUser {
   id: string;
   email: string | null;
@@ -6,17 +7,18 @@ export interface AdminUser {
   role: string;
   created_at: string;
   last_sign_in_at: string | null;
+  status: string;
 }
 
 export interface UserListProps {
   users: AdminUser[];
-  onUpdateRole: (userId: string, newRole: string) => Promise<void>;
+  onUpdateStatus: (userId: string, newStatus: string) => Promise<void>;
 }
 
 export interface UserFilterProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  filterRole: string | null;
+  filterStatus: string | null;
   onFilterChange: (value: string | null) => void;
   onRefresh: () => void;
   loading: boolean;

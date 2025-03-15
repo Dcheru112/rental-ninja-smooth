@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -16,7 +17,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterRole, setFilterRole] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -41,7 +42,8 @@ const UserManagement = () => {
       const transformedUsers: AdminUser[] = profiles.map(profile => ({
         ...profile,
         email: null, // We can't get emails without admin access
-        last_sign_in_at: null
+        last_sign_in_at: null,
+        status: profile.status || "active" // Default to active if status not set
       }));
 
       setUsers(transformedUsers);
@@ -57,27 +59,27 @@ const UserManagement = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: string) => {
+  const updateUserStatus = async (userId: string, newStatus: string) => {
     try {
-      console.log("Updating user role:", userId, newRole);
+      console.log("Updating user status:", userId, newStatus);
       const { error } = await supabase
         .from("profiles")
-        .update({ role: newRole })
+        .update({ status: newStatus })
         .eq("id", userId);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "User role updated successfully",
+        description: "User status updated successfully",
       });
       
       fetchUsers();
     } catch (error) {
-      console.error("Error updating user role:", error);
+      console.error("Error updating user status:", error);
       toast({
         title: "Error",
-        description: "Failed to update user role",
+        description: "Failed to update user status",
         variant: "destructive",
       });
     }
@@ -85,8 +87,8 @@ const UserManagement = () => {
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.full_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = !filterRole || user.role === filterRole;
-    return matchesSearch && matchesRole;
+    const matchesStatus = !filterStatus || user.status === filterStatus;
+    return matchesSearch && matchesStatus;
   });
 
   return (
@@ -94,7 +96,7 @@ const UserManagement = () => {
       <CardHeader>
         <CardTitle className="text-2xl font-bold">User Management</CardTitle>
         <CardDescription>
-          Manage system users and their roles
+          Monitor user activity and manage account statuses
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -102,14 +104,14 @@ const UserManagement = () => {
           <UserFilter
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
-            filterRole={filterRole}
-            onFilterChange={setFilterRole}
+            filterStatus={filterStatus}
+            onFilterChange={setFilterStatus}
             onRefresh={fetchUsers}
             loading={loading}
           />
           <UserList 
             users={filteredUsers}
-            onUpdateRole={updateUserRole}
+            onUpdateStatus={updateUserStatus}
           />
         </div>
       </CardContent>
