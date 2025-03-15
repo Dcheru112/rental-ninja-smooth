@@ -40,8 +40,12 @@ const UserManagement = () => {
       
       // Transform profiles into AdminUser type
       const transformedUsers: AdminUser[] = profiles.map(profile => ({
-        ...profile,
+        id: profile.id,
         email: null, // We can't get emails without admin access
+        full_name: profile.full_name,
+        phone_number: profile.phone_number,
+        role: profile.role || "user",
+        created_at: profile.created_at,
         last_sign_in_at: null,
         status: profile.status || "active" // Default to active if status not set
       }));
