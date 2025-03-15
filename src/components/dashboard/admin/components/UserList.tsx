@@ -3,10 +3,11 @@ import { SelectContent, SelectItem, SelectTrigger, SelectValue, Select } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CalendarDays, Clock, Info } from "lucide-react";
 import type { UserListProps } from "../types/adminTypes";
 
-const UserList = ({ users, onUpdateStatus }: UserListProps) => {
+const UserList = ({ users, onUpdateStatus, onViewDetails }: UserListProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
@@ -55,6 +56,16 @@ const UserList = ({ users, onUpdateStatus }: UserListProps) => {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onViewDetails(user)}
+              >
+                <Info className="h-4 w-4 mr-1" />
+                <span>Details</span>
+              </Button>
+              
               <Label htmlFor={`status-${user.id}`} className="sr-only">
                 Status
               </Label>

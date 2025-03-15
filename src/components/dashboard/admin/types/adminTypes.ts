@@ -13,6 +13,7 @@ export interface AdminUser {
 export interface UserListProps {
   users: AdminUser[];
   onUpdateStatus: (userId: string, newStatus: string) => Promise<void>;
+  onViewDetails: (user: AdminUser) => void;
 }
 
 export interface UserFilterProps {

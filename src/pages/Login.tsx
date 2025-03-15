@@ -1,44 +1,80 @@
-import { useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isAuthError, setIsAuthError] = useState(false);
+  const [authErrorMessage, setAuthErrorMessage] = useState("");
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/dashboard");
+        checkUserStatus(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const checkUserStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("status")
+        .eq("id", userId)
+        .single();
+
+      if (error) throw error;
+
+      if (data.status === "suspended") {
+        // For suspended users, sign them out and show error
+        await supabase.auth.signOut();
+        setIsAuthError(true);
+        setAuthErrorMessage("Your account has been suspended. Please contact an administrator.");
+      } else {
+        // For active users, navigate to dashboard
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Error checking user status:", error);
+      // If we can't check status, still allow login
+      navigate("/dashboard");
+    }
+  };
+
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setIsAuthError(false);
     const formData = new FormData(event.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
+      // User status will be checked in the onAuthStateChange handler
       toast({
         title: "Success",
         description: "Logged in successfully!",
       });
     } catch (error: any) {
+      console.error("Login error:", error);
+      setIsAuthError(true);
+      setAuthErrorMessage(error.message);
       toast({
         title: "Error",
         description: error.message,
@@ -57,6 +93,15 @@ const Login = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {isAuthError && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {authErrorMessage || "Authentication failed. Please try again."}
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <Label htmlFor="email">Email address</Label>

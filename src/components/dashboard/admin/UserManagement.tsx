@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Card,
   CardContent,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import UserList from "./components/UserList";
 import UserFilter from "./components/UserFilter";
+import UserDetailsDialog from "./components/UserDetailsDialog";
 import type { AdminUser } from "./types/adminTypes";
 
 const UserManagement = () => {
@@ -18,6 +19,8 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -47,7 +50,7 @@ const UserManagement = () => {
         role: profile.role || "user",
         created_at: profile.created_at,
         last_sign_in_at: null,
-        status: profile.status // Now we can use status directly from the database
+        status: profile.status
       }));
 
       setUsers(transformedUsers);
@@ -89,6 +92,11 @@ const UserManagement = () => {
     }
   };
 
+  const handleViewDetails = (user: AdminUser) => {
+    setSelectedUser(user);
+    setDetailsOpen(true);
+  };
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.full_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = !filterStatus || user.status === filterStatus;
@@ -116,6 +124,12 @@ const UserManagement = () => {
           <UserList 
             users={filteredUsers}
             onUpdateStatus={updateUserStatus}
+            onViewDetails={handleViewDetails}
+          />
+          <UserDetailsDialog 
+            user={selectedUser}
+            open={detailsOpen}
+            onOpenChange={setDetailsOpen}
           />
         </div>
       </CardContent>
