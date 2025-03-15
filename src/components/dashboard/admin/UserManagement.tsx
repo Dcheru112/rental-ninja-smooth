@@ -32,6 +32,22 @@ const UserManagement = () => {
       setLoading(true);
       console.log("Fetching users data...");
       
+      // Try to fetch users from auth.users for emails (only works with admin access)
+      let emails: Record<string, string> = {};
+      
+      try {
+        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        
+        if (!authError && authUsers) {
+          emails = authUsers.users.reduce((acc: Record<string, string>, user) => {
+            if (user.email) acc[user.id] = user.email;
+            return acc;
+          }, {});
+        }
+      } catch (error) {
+        console.warn("Could not fetch emails from auth.users (requires admin access)");
+      }
+      
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
@@ -44,7 +60,7 @@ const UserManagement = () => {
       // Transform profiles into AdminUser type
       const transformedUsers: AdminUser[] = profiles.map(profile => ({
         id: profile.id,
-        email: null, // We can't get emails without admin access
+        email: emails[profile.id] || null, // Add email if available
         full_name: profile.full_name,
         phone_number: profile.phone_number,
         role: profile.role || "user",
@@ -76,12 +92,22 @@ const UserManagement = () => {
 
       if (error) throw error;
 
+      // Update the local state to immediately reflect the change
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId ? { ...user, status: newStatus } : user
+        )
+      );
+
+      // If the user details dialog is open and showing this user, update it too
+      if (selectedUser && selectedUser.id === userId) {
+        setSelectedUser({ ...selectedUser, status: newStatus });
+      }
+
       toast({
         title: "Success",
-        description: "User status updated successfully",
+        description: `User status updated to ${newStatus}`,
       });
-      
-      fetchUsers();
     } catch (error) {
       console.error("Error updating user status:", error);
       toast({

@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, Clock, Phone, User } from "lucide-react";
+import { CalendarDays, Clock, Phone, User, Mail } from "lucide-react";
 import type { AdminUser } from "../types/adminTypes";
 
 interface UserDetailsDialogProps {
@@ -43,7 +43,10 @@ const UserDetailsDialog = ({ user, open, onOpenChange }: UserDetailsDialogProps)
             <div>
               <h4 className="font-medium">{user.full_name}</h4>
               {user.email && (
-                <p className="text-sm text-muted-foreground">{user.email}</p>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Mail className="h-3 w-3" />
+                  <span>{user.email}</span>
+                </div>
               )}
             </div>
           </div>
