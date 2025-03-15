@@ -47,7 +47,7 @@ const UserManagement = () => {
         role: profile.role || "user",
         created_at: profile.created_at,
         last_sign_in_at: null,
-        status: profile.status || "active" // Default to active if status not set
+        status: profile.status // Now we can use status directly from the database
       }));
 
       setUsers(transformedUsers);
