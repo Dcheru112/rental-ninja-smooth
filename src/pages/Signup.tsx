@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,13 +23,16 @@ const Signup = () => {
     const fullName = formData.get('fullName') as string;
     
     try {
+      // Special case for admin role - only allow it for specific email
+      const finalRole = (email === 'd.cheru112@gmail.com') ? 'admin' : role;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             full_name: fullName,
-            role: role,
+            role: finalRole,
           },
         },
       });
@@ -37,15 +41,15 @@ const Signup = () => {
 
       if (data.user) {
         toast({
-          title: "Success",
-          description: "Account created successfully! Please check your email to verify your account.",
+          title: "Account Created",
+          description: "Your account has been created successfully! Please check your email to verify your account.",
         });
-        navigate("/dashboard");
+        navigate("/login");
       }
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to create account",
         variant: "destructive",
       });
     } finally {

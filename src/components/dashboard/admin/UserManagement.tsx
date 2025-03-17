@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Card,
   CardContent,
@@ -36,12 +36,12 @@ const UserManagement = () => {
       let emails: Record<string, string> = {};
       
       try {
-        const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+        const { data, error } = await supabase.auth.admin.listUsers();
         
-        if (!authError && authData && authData.users) {
+        if (!error && data && data.users) {
           // Process each user safely with proper type checking
-          if (Array.isArray(authData.users)) {
-            authData.users.forEach(user => {
+          if (Array.isArray(data.users)) {
+            data.users.forEach(user => {
               if (user && typeof user === 'object' && 'id' in user && 'email' in user && typeof user.id === 'string' && typeof user.email === 'string') {
                 emails[user.id] = user.email;
               }

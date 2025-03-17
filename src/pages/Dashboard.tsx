@@ -27,6 +27,8 @@ const Dashboard = () => {
         return;
       }
 
+      console.log("Current user ID:", user.id);
+      
       // Fetch user profile
       const { data: profile, error } = await supabase
         .from("profiles")
@@ -44,7 +46,7 @@ const Dashboard = () => {
         console.error("Profile not found for user ID:", user.id);
         toast({
           title: "Profile not found",
-          description: "Please try logging in again or contact support.",
+          description: "Your user profile could not be found. Please try logging in again or contact support.",
           variant: "destructive",
         });
         await supabase.auth.signOut();
@@ -52,6 +54,8 @@ const Dashboard = () => {
         return;
       }
 
+      console.log("User profile:", profile);
+      
       // Set user role from profile
       setUserRole(profile.role);
 
@@ -71,7 +75,7 @@ const Dashboard = () => {
       console.error("Error fetching user role:", error);
       toast({
         title: "Error",
-        description: "Failed to load user profile",
+        description: "Failed to load user profile. Please try again later.",
         variant: "destructive",
       });
     } finally {
