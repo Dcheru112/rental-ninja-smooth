@@ -41,12 +41,13 @@ const UserManagement = () => {
         if (!authError && authData) {
           // Handle the users array properly with explicit typing
           if (Array.isArray(authData.users)) {
-            emails = authData.users.reduce((acc: Record<string, string>, user: any) => {
-              if (user && typeof user === 'object' && user.email) {
-                acc[user.id] = user.email;
+            emails = authData.users.reduce((acc: Record<string, string>, user) => {
+              // Ensure user is valid and has an email property
+              if (user && typeof user === 'object' && 'email' in user && user.email && 'id' in user) {
+                acc[user.id as string] = user.email as string;
               }
               return acc;
-            }, {});
+            }, {} as Record<string, string>);
           }
         }
       } catch (error) {
@@ -90,12 +91,19 @@ const UserManagement = () => {
   const updateUserStatus = async (userId: string, newStatus: string) => {
     try {
       console.log("Updating user status:", userId, newStatus);
+      
+      // Update the user status in the database
       const { error } = await supabase
         .from("profiles")
         .update({ status: newStatus })
         .eq("id", userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase update error:", error);
+        throw error;
+      }
+
+      console.log("Successfully updated status in database");
 
       // Update the local state to immediately reflect the change
       setUsers(prevUsers => 
