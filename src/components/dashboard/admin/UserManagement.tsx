@@ -38,12 +38,12 @@ const UserManagement = () => {
       try {
         const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
         
-        if (!authError && authData) {
+        if (!authError && authData && authData.users) {
           // Handle the users array properly with explicit typing
           if (Array.isArray(authData.users)) {
-            emails = authData.users.reduce((acc: Record<string, string>, user) => {
-              // Ensure user is valid and has an email property
-              if (user && typeof user === 'object' && 'email' in user && user.email && 'id' in user) {
+            emails = authData.users.reduce((acc: Record<string, string>, user: any) => {
+              // Ensure user is valid and has required properties
+              if (user && typeof user === 'object' && 'id' in user && 'email' in user && user.email) {
                 acc[user.id as string] = user.email as string;
               }
               return acc;
