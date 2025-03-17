@@ -39,15 +39,13 @@ const UserManagement = () => {
         const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
         
         if (!authError && authData && authData.users) {
-          // Handle the users array properly with explicit typing
+          // Process each user safely with proper type checking
           if (Array.isArray(authData.users)) {
-            emails = authData.users.reduce((acc: Record<string, string>, user: any) => {
-              // Ensure user is valid and has required properties
-              if (user && typeof user === 'object' && 'id' in user && 'email' in user && user.email) {
-                acc[user.id as string] = user.email as string;
+            authData.users.forEach(user => {
+              if (user && typeof user === 'object' && 'id' in user && 'email' in user && typeof user.id === 'string' && typeof user.email === 'string') {
+                emails[user.id] = user.email;
               }
-              return acc;
-            }, {} as Record<string, string>);
+            });
           }
         }
       } catch (error) {

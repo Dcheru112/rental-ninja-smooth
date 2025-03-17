@@ -6,13 +6,13 @@ import { useToast } from "@/components/ui/use-toast";
 import TenantDashboard from "@/components/dashboard/TenantDashboard";
 import OwnerDashboard from "@/components/dashboard/OwnerDashboard";
 import AdminDashboard from "@/components/dashboard/AdminDashboard";
+import { Loader2 } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     checkUser();
@@ -20,16 +20,14 @@ const Dashboard = () => {
 
   const checkUser = async () => {
     try {
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate("/login");
         return;
       }
 
-      // Set the user ID for debugging purposes
-      setUserId(user.id);
-      console.log("Current user ID:", user.id);
-
+      // Fetch user profile
       const { data: profile, error } = await supabase
         .from("profiles")
         .select("*")
@@ -41,8 +39,7 @@ const Dashboard = () => {
         throw error;
       }
       
-      console.log("User profile:", profile);
-      
+      // Handle missing profile
       if (!profile) {
         console.error("Profile not found for user ID:", user.id);
         toast({
@@ -55,30 +52,10 @@ const Dashboard = () => {
         return;
       }
 
-      // Check if role is null, undefined, or empty string
-      if (!profile.role) {
-        console.log("Role is missing for user:", user.id);
-        
-        // Try to update the role to admin for this specific user (d.cheru112@gmail.com)
-        if (user.email === "d.cheru112@gmail.com") {
-          const { error: updateError } = await supabase
-            .from("profiles")
-            .update({ role: "admin" })
-            .eq("id", user.id);
-            
-          if (updateError) {
-            console.error("Failed to update role:", updateError);
-          } else {
-            console.log("Updated role to admin for user:", user.id);
-            setUserRole("admin");
-            return;
-          }
-        }
-      }
-
+      // Set user role from profile
       setUserRole(profile.role);
 
-      // If tenant and no unit assigned, show property selection
+      // Special case for tenant without assigned unit
       if (profile.role === "tenant") {
         const { data: tenantUnit } = await supabase
           .from("tenant_units")
@@ -87,7 +64,7 @@ const Dashboard = () => {
           .maybeSingle();
 
         if (!tenantUnit) {
-          console.log("No unit assigned, showing property selection");
+          console.log("No unit assigned to tenant");
         }
       }
     } catch (error) {
@@ -105,7 +82,8 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">Loading...</div>
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-lg">Loading your dashboard...</span>
       </div>
     );
   }
@@ -116,43 +94,23 @@ const Dashboard = () => {
       {userRole === "owner" && <OwnerDashboard />}
       {userRole === "admin" && <AdminDashboard />}
       {!userRole && (
-        <div className="text-center py-8">
-          <h2 className="text-2xl font-bold text-gray-700">
-            Role not assigned. Please contact support.
-          </h2>
-          <p className="mt-2 text-gray-500">
-            User ID: {userId || "Unknown"}
-          </p>
-          <div className="mt-4">
+        <div className="text-center py-8 max-w-md mx-auto">
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h2 className="text-2xl font-bold text-gray-700 mb-4">
+              Role Not Assigned
+            </h2>
+            <p className="text-gray-600 mb-4">
+              Your account doesn't have a role assigned yet. Please contact the system administrator
+              or sign in with an account that has the appropriate permissions.
+            </p>
             <button
               onClick={async () => {
-                // Try to manually fix the role for this user
-                if (userId) {
-                  const { error } = await supabase
-                    .from("profiles")
-                    .update({ role: "admin" })
-                    .eq("id", userId);
-                  
-                  if (error) {
-                    console.error("Failed to update role:", error);
-                    toast({
-                      title: "Error",
-                      description: "Failed to update role. Please try again later.",
-                      variant: "destructive",
-                    });
-                  } else {
-                    toast({
-                      title: "Success",
-                      description: "Role updated to admin. Refreshing...",
-                    });
-                    // Refresh the page after a short delay
-                    setTimeout(() => window.location.reload(), 1500);
-                  }
-                }
+                await supabase.auth.signOut();
+                navigate("/login");
               }}
               className="px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
             >
-              Assign Admin Role
+              Sign Out
             </button>
           </div>
         </div>
