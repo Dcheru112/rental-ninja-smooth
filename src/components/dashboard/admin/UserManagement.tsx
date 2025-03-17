@@ -36,10 +36,11 @@ const UserManagement = () => {
       let emails: Record<string, string> = {};
       
       try {
-        const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+        const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
         
-        if (!authError && authUsers) {
-          emails = authUsers.users.reduce((acc: Record<string, string>, user) => {
+        if (!authError && authData) {
+          // Correctly type the users data from authData
+          emails = authData.users.reduce((acc: Record<string, string>, user: any) => {
             if (user.email) acc[user.id] = user.email;
             return acc;
           }, {});
