@@ -39,11 +39,15 @@ const UserManagement = () => {
         const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
         
         if (!authError && authData) {
-          // Correctly type the users data from authData
-          emails = authData.users.reduce((acc: Record<string, string>, user: any) => {
-            if (user.email) acc[user.id] = user.email;
-            return acc;
-          }, {});
+          // Handle the users array properly with explicit typing
+          if (Array.isArray(authData.users)) {
+            emails = authData.users.reduce((acc: Record<string, string>, user: any) => {
+              if (user && typeof user === 'object' && user.email) {
+                acc[user.id] = user.email;
+              }
+              return acc;
+            }, {});
+          }
         }
       } catch (error) {
         console.warn("Could not fetch emails from auth.users (requires admin access)");
